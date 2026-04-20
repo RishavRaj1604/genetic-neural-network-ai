@@ -4,7 +4,9 @@ from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping
 
-early_stopper = EarlyStopping(patience=5)
+# Faster early stopping
+early_stopper = EarlyStopping(patience=2)
+
 
 def get_cifar10():
     nb_classes = 10
@@ -13,8 +15,15 @@ def get_cifar10():
 
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
-    x_train = x_train.reshape(50000, 3072).astype('float32') / 255
-    x_test = x_test.reshape(10000, 3072).astype('float32') / 255
+    # 🔥 Reduce dataset size (SPEED BOOST)
+    x_train = x_train[:5000]
+    y_train = y_train[:5000]
+
+    x_test = x_test[:1000]
+    y_test = y_test[:1000]
+
+    x_train = x_train.reshape(len(x_train), 3072).astype('float32') / 255
+    x_test = x_test.reshape(len(x_test), 3072).astype('float32') / 255
 
     y_train = to_categorical(y_train, nb_classes)
     y_test = to_categorical(y_test, nb_classes)
@@ -29,8 +38,15 @@ def get_mnist():
 
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
-    x_train = x_train.reshape(60000, 784).astype('float32') / 255
-    x_test = x_test.reshape(10000, 784).astype('float32') / 255
+    # 🔥 Reduce dataset size (SPEED BOOST)
+    x_train = x_train[:5000]
+    y_train = y_train[:5000]
+
+    x_test = x_test[:1000]
+    y_test = y_test[:1000]
+
+    x_train = x_train.reshape(len(x_train), 784).astype('float32') / 255
+    x_test = x_test.reshape(len(x_test), 784).astype('float32') / 255
 
     y_train = to_categorical(y_train, nb_classes)
     y_test = to_categorical(y_test, nb_classes)
@@ -71,7 +87,7 @@ def train_and_score(network, dataset):
     model.fit(
         x_train, y_train,
         batch_size=batch_size,
-        epochs=10000,
+        epochs=5,   # 🔥 HUGE SPEED BOOST (was 10000 💀)
         verbose=0,
         validation_data=(x_test, y_test),
         callbacks=[early_stopper]
