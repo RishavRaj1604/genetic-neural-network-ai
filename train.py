@@ -1,30 +1,20 @@
-"""
-Utility used by the Network class to actually train.
-Updated for TensorFlow/Keras compatibility.
-"""
-
 from tensorflow.keras.datasets import mnist, cifar10
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping
 
-# Helper: Early stopping.
 early_stopper = EarlyStopping(patience=5)
 
 def get_cifar10():
-    """Retrieve the CIFAR dataset and process the data."""
     nb_classes = 10
     batch_size = 64
     input_shape = (3072,)
 
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
-    x_train = x_train.reshape(50000, 3072)
-    x_test = x_test.reshape(10000, 3072)
-
-    x_train = x_train.astype('float32') / 255
-    x_test = x_test.astype('float32') / 255
+    x_train = x_train.reshape(50000, 3072).astype('float32') / 255
+    x_test = x_test.reshape(10000, 3072).astype('float32') / 255
 
     y_train = to_categorical(y_train, nb_classes)
     y_test = to_categorical(y_test, nb_classes)
@@ -33,18 +23,14 @@ def get_cifar10():
 
 
 def get_mnist():
-    """Retrieve the MNIST dataset and process the data."""
     nb_classes = 10
     batch_size = 128
     input_shape = (784,)
 
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
-    x_train = x_train.reshape(60000, 784)
-    x_test = x_test.reshape(10000, 784)
-
-    x_train = x_train.astype('float32') / 255
-    x_test = x_test.astype('float32') / 255
+    x_train = x_train.reshape(60000, 784).astype('float32') / 255
+    x_test = x_test.reshape(10000, 784).astype('float32') / 255
 
     y_train = to_categorical(y_train, nb_classes)
     y_test = to_categorical(y_test, nb_classes)
@@ -53,19 +39,13 @@ def get_mnist():
 
 
 def compile_model(network, nb_classes, input_shape):
-    """Compile a sequential model."""
-    nb_layers = network['nb_layers']
-    nb_neurons = network['nb_neurons']
-    activation = network['activation']
-    optimizer = network['optimizer']
-
     model = Sequential()
 
-    for i in range(nb_layers):
+    for i in range(network['nb_layers']):
         if i == 0:
-            model.add(Dense(nb_neurons, activation=activation, input_shape=input_shape))
+            model.add(Dense(network['nb_neurons'], activation=network['activation'], input_shape=input_shape))
         else:
-            model.add(Dense(nb_neurons, activation=activation))
+            model.add(Dense(network['nb_neurons'], activation=network['activation']))
 
         model.add(Dropout(0.2))
 
@@ -73,7 +53,7 @@ def compile_model(network, nb_classes, input_shape):
 
     model.compile(
         loss='categorical_crossentropy',
-        optimizer=optimizer,
+        optimizer=network['optimizer'],
         metrics=['accuracy']
     )
 
@@ -81,7 +61,6 @@ def compile_model(network, nb_classes, input_shape):
 
 
 def train_and_score(network, dataset):
-    """Train the model, return test accuracy."""
     if dataset == 'cifar10':
         nb_classes, batch_size, input_shape, x_train, x_test, y_train, y_test = get_cifar10()
     else:
@@ -100,4 +79,4 @@ def train_and_score(network, dataset):
 
     score = model.evaluate(x_test, y_test, verbose=0)
 
-    return score[1]  # accuracy
+    return score[1]
